@@ -6,12 +6,11 @@ Creates a compliance report for network devices . In this example if a device's 
 
 ## Notes
 
-1. This playbook assumes that the devices are in a group respective to their OS (ASAs are in group asa, Aristas are in group eos, etc).
-2. In the group_vars folder is {os}.yml and within that is the desired_version variable.
-3. The server, Confluence and Mattermost variables are found in defaults/main.yml
-4. If there is not a task for your OS you can create one, just make sure you follow the structure of the other devices to ensure a uniform variable set.
-5. If you are setting the tokens as variables, (recommended) then make sure to remove **confluence_token** and **mattermost_token** from defaults/main.yml
-6. Confluence is assumed to be an Atlassian hosted solution, you may have to modify the URI call if its an on-premise device.
+1. In the network_compliance_report/vars folder is main.yml and within that is the version and server variables.
+2. The server, Confluence and Mattermost variables are found in defaults/main.yml
+3. If there is not a task for your OS you can create one, just make sure you follow the structure of the other devices to ensure a uniform variable set.
+4. If you are setting the tokens as variables(recommended) then make sure to remove **confluence_token** and **mattermost_token** from defaults/main.yml
+5. Confluence is assumed to be the Atlassian hosted solution, you may have to modify the URI call if its an on-premise device.
 
 ## The playbook
 
@@ -34,9 +33,9 @@ The playbook has 2 templates for Confluence and Mattermost depending if you pass
 
 ## Required Variables
 
-There are currently 2 ways to create a report, Mattermost and Confluence. Below are the required variables for each which can be found in "Defaults"
+There are currently 2 ways to create a report, Mattermost and Confluence. Below are the required variables for each and where they should be placed.
 
-I strongly recommend vaulting the API tokens! In Ansible Tower use a [Custom Credential Type](https://www.ansible.com/blog/ansible-tower-feature-spotlight-custom-credentials) Please see step 5 in notes and make sure you remove these if you set them as vars.
+I strongly recommend vaulting the API tokens! In Ansible Tower use a [Custom Credential Type](https://www.ansible.com/blog/ansible-tower-feature-spotlight-custom-credentials) Please see step 5 in notes and make sure you remove these if you set them as vars, though exta-vars injected at runtime will take precedence over role vars.
 
 ### OS Versions
 
