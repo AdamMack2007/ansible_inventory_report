@@ -12,7 +12,8 @@
 
 - name: Set Confluence Data as Facts
   set_fact:
-    confluence_page_titles: "{{ confluence_pages.json.page.results | map(attribute='title')|list }}"
+    #confluence_page_titles creates list of titles to check against when creating/updating pages
+    confluence_page_titles: "{{ confluence_pages.json.page.results | map(attribute='title')|list }}" 
     confluence_page_id: "{{ confluence_pages | json_query(confluence_parent_query) }}" #Found in defaults/main.yml
   run_once: true
 
