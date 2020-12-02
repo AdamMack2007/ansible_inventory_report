@@ -1,38 +1,124 @@
-Role Name
-=========
+# Network Inventory Report with Ansible
 
-A brief description of the role goes here.
+## Purpose
 
-Requirements
-------------
+Creates a compliance report for network devices . In this example if a device's version, NTP, AAA or Syslog doesn't match what is configured in the variables then it will be highlighted in the report. This role is configured to only send reports to Confluence and Mattermost at this time.
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+## Notes
 
-Role Variables
---------------
+1. In the network_compliance_report/vars folder is main.yml and within that is the version and server variables.
+2. The server, Confluence and Mattermost variables are found in defaults/main.yml
+3. If there is not a task for your OS you can create one, just make sure you follow the structure of the other devices to ensure a uniform variable set.
+4. If you are setting the tokens as variables(recommended) then make sure to remove **confluence_token** and **mattermost_token** from defaults/main.yml
+5. Confluence is assumed to be the Atlassian hosted solution, you may have to modify the URI call if its an on-premise device.
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## The playbook
 
-Dependencies
-------------
+```
+---
+- name: Build Network Compliance Report
+  hosts: all
+  gather_facts: False
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+  roles:
+    - network_compliance_report
+```
 
-Example Playbook
-----------------
+## Structure
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+The playbook has 2 templates for Confluence and Mattermost depending if you pass in an entire inventory or if you do a limit.
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+- **all**: Will loop through all groups in the inventory except for All and Ungrouped. Make sure each device has its OS task otherwise it will error out
+- **limit**: Will loop through only the groups in the ansible_limit specified at runtime
 
-License
--------
+## Required Variables
 
-BSD
+There are currently 2 ways to create a report, Mattermost and Confluence. Below are the required variables for each and where they should be placed.
 
-Author Information
-------------------
+I strongly recommend vaulting the API tokens! In Ansible Tower use a [Custom Credential Type](https://www.ansible.com/blog/ansible-tower-feature-spotlight-custom-credentials) Please see step 5 in notes and make sure you remove these if you set them as vars, though exta-vars injected at runtime will take precedence over role vars.
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+### OS Versions
+
+These should be placed in vars/main.yml
+
+Specifies the desired version for the devices to run. Ansible will compare this version to the current version to determine if it's compliant.
+
+Examples:
+
+- **asa_version**: "9.8(4)26"
+- **eos_version**: "4.24.1.1F"
+- **f5_version**: "15.1.0.2"
+- **ios_version**: "16.12.03"
+- **panos_version**: "9.0.0"
+
+### Server Vars
+
+These should be placed in vars/main.yml
+
+- **aaa_servers**: List of AAA servers to check against
+- **snmp_servers**: List of SNMP servers to check against
+- **ntp_servers**: List of NTP servers to check against
+- **syslog_servers**: List of Syslog servers to check against
+- **dns_servers**: List of DNS servers to check against
+
+### Mattermost
+
+These should be placed in defaults/main.yml
+
+- **enable_mattermost**: (yes/no) Includes the Mattermost tasks
+- **mattermost_url**: the url for the mattermost instance
+- **mattermost_token**: the api token for the mattermost instance
+- **mattermost_channel**: the channel to send the message to
+
+### Confluence
+
+These should be placed in defaults/main.yml
+
+- **enable_confluence**: (yes/no) Includes the Confluence tasks
+- **confluence_url**: Base URL for confluence (myconfluence.atlassian.com)
+- **confluence_user**: Username for Confluence
+- **confluence_token**: API Token for Confluence
+- **confluence_title**: Title of the page to create
+- **confluence_space**: This is the space that the page will be created (E.G. Network, Dev, etc)
+
+## Example Output
+
+Devices not matching the variables for each check will exhibit an ! if the version is off or X if the servers are missing.
+
+### Confluence Output
+
+![Example Confluence Report](https://i.imgur.com/kR7m6E8.png)
+
+### Mattermost Output
+
+![Example Mattermost Report](https://i.imgur.com/JkPm4I4.png)
+
+---
+
+![Red Hat Ansible Automation][6]
+
+Red Hat® Ansible® Automation consists of three products:
+
+- [Red Hat® Ansible® Tower][7]: Built for operationalizing and scaling
+  automation, managing complex deployments and speeding up productivity. Extend
+  the power of Ansible Tower with Workflows and Surveys to streamline jobs and
+  simple tools to share solutions with your team.
+
+- [Red Hat® Ansible® Engine][8]: a fully supported product built on the
+  foundational capabilities of the Ansible project. Also provides support for
+  select modules including Infoblox.
+
+- [Red Hat® Ansible® Network Automation][9]: provides support for select
+  networking modules from Arista (EOS), Cisco (IOS, IOS XR, NX-OS), Juniper
+  (JunOS), Open vSwitch, and VyOS. Includes Ansible Tower, Ansible Engine, and
+  curated content specifically for network use cases.
+
+[1]: http://docs.ansible.com/ansible/latest/nxos_facts_module.html
+[2]: http://docs.ansible.com/ansible/latest/list_of_network_modules.html
+[3]: images/htmlreport.png
+[4]: http://docs.ansible.com/ansible/latest/ios_facts_module.html
+[5]: http://docs.ansible.com/ansible/latest/template_module.html
+[6]: images/rh-ansible-automation.png
+[7]: https://www.ansible.com/tower
+[8]: https://www.ansible.com/ansible-engine
+[9]: https://www.ansible.com/networking
